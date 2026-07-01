@@ -1,0 +1,95 @@
+specification: FinOps Framework
+specificationVersion: '1.0'
+schema: https://www.finops.org/framework/
+provider: Fragment
+providerId: fragment-dev
+created: '2026-07-01'
+modified: '2026-07-01'
+reconciled: false
+tags:
+- Ledger
+- Double-Entry
+- Fintech
+- FinOps
+- Cost Management
+- FOCUS
+description: >-
+  FinOps view of Fragment (fragment.dev) spend. Fragment is a usage-priced,
+  sales-quoted ledger API. The primary cost driver is ledger volume - the
+  number of ledger entries / postings processed - with ledger count and region
+  as secondary dimensions. Because pricing is contract-based rather than
+  published list rates, cost visibility depends on Fragment's invoicing and
+  usage reporting; the meters below describe the natural units of consumption.
+notes: >-
+  Rates are sales-quoted and not public as of the created date; verify billed
+  meters and unit prices against the Fragment contract during reconciliation.
+sources:
+- https://fragment.dev
+- https://fragment.dev/docs
+- https://focus.finops.org/focus-specification/v1-3/
+alignedWith:
+  framework: FinOps Foundation Framework
+  frameworkUrl: https://www.finops.org/framework/
+  dataSpec: FOCUS
+  dataSpecVersion: '1.3'
+  dataSpecUrl: https://focus.finops.org/focus-specification/v1-3/
+publisherName: Fragment
+serviceCategory: Financial Infrastructure
+billingModel:
+  pricingCategory: Usage-Based
+  billingFrequency: Monthly
+  billingCurrency: USD
+  chargeCategories:
+  - Usage
+  - Purchase
+focusColumns:
+  ServiceName: Fragment Ledger API
+  ServiceCategory: Financial Infrastructure
+  ProviderName: Fragment
+  PublisherName: Fragment
+  InvoiceIssuerName: Fragment
+  BillingCurrency: USD
+  ChargeCategory: Usage
+  PricingCategory: Usage-Based
+meters:
+- name: ledger_entries
+  description: Ledger entries / postings written via addLedgerEntry, the primary volume-based cost driver.
+  unit: entries
+  aggregation: sum
+  dimensions:
+  - account
+  - ledger
+  - region
+- name: reconciliations
+  description: Transactions reconciled via reconcileTx against external money movement.
+  unit: transactions
+  aggregation: sum
+  dimensions:
+  - account
+  - ledger
+- name: synced_records
+  description: External accounts and transactions ingested via syncCustomAccounts / syncCustomTxs.
+  unit: records
+  aggregation: sum
+  dimensions:
+  - account
+  - ledger
+- name: ledgers
+  description: Provisioned ledgers, a secondary allocation dimension.
+  unit: ledgers
+  aggregation: max
+  dimensions:
+  - account
+  - region
+principles:
+- name: Visibility
+  description: Pull Fragment usage/invoice data and track ledger entries posted per ledger and per region.
+- name: Allocation
+  description: Map ledgers (and their entry volume) to products, tenants, or cost centers.
+- name: Optimization
+  description: Use idempotency keys to avoid duplicate billable postings on retries; batch external syncs; consolidate ledgers where volume allows.
+- name: Accountability
+  description: Assign owners per ledger; review monthly entry volume against the committed contract.
+maintainers:
+- FN: Kin Lane
+  email: kin@apievangelist.com

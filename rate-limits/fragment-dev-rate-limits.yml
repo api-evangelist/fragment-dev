@@ -1,0 +1,60 @@
+specification: API Commons Rate Limits
+specificationVersion: '0.1'
+schema: https://raw.githubusercontent.com/api-evangelist/interface-research/main/schema/api-commons.yml#/$defs/RateLimits
+provider: Fragment
+providerId: fragment-dev
+created: '2026-07-01'
+modified: '2026-07-01'
+reconciled: false
+tags:
+- Ledger
+- GraphQL
+- Rate Limiting
+- Quotas
+- Throttling
+description: >-
+  Fragment does not publish specific numeric rate limits on its public docs.
+  As a region-scoped GraphQL API used for money movement, callers should expect
+  per-account throttling and should design for idempotent retries: every write
+  mutation carries an idempotency key (ik), so a retried request after a
+  throttle or timeout will not double-post. Specific per-account limits are set
+  by Fragment and are not reconciled in this artifact.
+notes: >-
+  Confirm concrete request-per-second / concurrency limits and any burst
+  allowances with Fragment during reconciliation. The ik on writes is the
+  primary safety mechanism against duplicate effects on retry.
+sources:
+- https://fragment.dev/docs
+- https://fragment.dev/api-reference
+- https://status.fragment.dev
+responseCodes:
+  throttled: 429
+limits:
+- name: Per-Account Request Limit
+  scope: account
+  metric: requests
+  limit: see provider documentation
+  notes: Region-scoped GraphQL endpoint; concrete throttling values are not published.
+- name: Write Concurrency
+  scope: ledger
+  metric: concurrent_writes
+  limit: see provider documentation
+  notes: Concurrent postings to a ledger; use idempotency keys so retries are safe.
+policies:
+- name: Idempotent Retries
+  description: >-
+    Every write mutation (addLedgerEntry, reconcileTx, syncCustomAccounts,
+    syncCustomTxs, createLedger, storeSchema, reverseLedgerEntry) accepts an
+    idempotency key. Retry the same request with the same key to recover from a
+    throttle, timeout, or network error without double-posting.
+- name: Backoff Strategy
+  description: >-
+    Clients should implement exponential backoff with jitter on 429 / 5xx and
+    honor any Retry-After header.
+- name: Short-Lived Tokens
+  description: >-
+    OAuth2 client-credentials access tokens expire in about 1 hour; cache and
+    refresh tokens rather than minting one per request.
+maintainers:
+- FN: Kin Lane
+  email: kin@apievangelist.com

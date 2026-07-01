@@ -1,0 +1,86 @@
+aid: fragment-dev
+name: Fragment
+review:
+  question: Is Fragment's primary API surface GraphQL, and is there a separate documented REST or WebSocket API?
+  answer: false
+  date: '2026-07-01'
+  reviewer: API Evangelist
+  graphqlFirst: true
+findings:
+  summary: |
+    Fragment (fragment.dev) is a GraphQL-first ledger API. The entire product
+    surface - defining a Schema (chart of accounts + entry types), creating
+    Ledgers, posting immutable balanced double-entry Ledger Entries, reading
+    balances and lines, and reconciling against external money movement - is
+    exposed through a single, region-scoped GraphQL endpoint. There is no
+    separately documented REST resource API and no documented WebSocket / SSE
+    streaming surface. Because the canonical contract is a GraphQL schema, this
+    catalog entry relies on the GraphQL schema (graphql/fragment-dev-schema.graphql)
+    as the primary machine-readable specification and does NOT fabricate an
+    OpenAPI document; only the OAuth2 token exchange is a plain HTTP POST.
+  transports:
+    - protocol: GraphQL
+      scheme: https
+      baseURL: https://api.fragment.dev/graphql
+      note: Region-scoped, e.g. https://api.us-west-2.fragment.dev/. Single endpoint for all operations.
+      documented: true
+    - protocol: OAuth2 Token (HTTP)
+      scheme: https
+      note: Region-scoped token endpoint, e.g. https://auth.us-west-2.fragment.dev/oauth2/token; POST x-www-form-urlencoded, client-credentials grant. This is auth plumbing, not a REST resource API.
+      documented: true
+    - protocol: REST
+      scheme: https
+      documented: false
+      note: No standalone REST resource API is documented; the product is GraphQL-first.
+    - protocol: WebSocket
+      scheme: wss
+      documented: false
+      note: No WebSocket or SSE streaming surface is documented.
+  authentication:
+    type: OAuth2
+    grant: client_credentials
+    tokenEndpoint: https://auth.us-west-2.fragment.dev/oauth2/token (region-scoped)
+    clientAuth: HTTP Basic base64(client_id:client_secret)
+    bearerLifetimeApprox: 1 hour
+    scope: region-scoped, e.g. https://api.us-west-2.fragment.dev/*
+  operationsConfirmed:
+    queries:
+      - ledger
+      - ledgerAccount
+      - ledgerEntry
+      - getLedgerBalances
+      - getLedgerAccountBalances
+      - getLedgerAccountLines
+    mutations:
+      - storeSchema
+      - createLedger
+      - addLedgerEntry
+      - reverseLedgerEntry
+      - reconcileTx
+      - syncCustomAccounts
+      - syncCustomTxs
+  idempotency: |
+    Every write mutation is idempotent via an idempotency key (ik). reconcileTx
+    keys on the external transaction ID; syncCustomAccounts / syncCustomTxs key on
+    the external account / transaction ID.
+sources:
+  - url: https://fragment.dev/docs
+    type: Documentation
+    note: Overview and ledger concepts (Schema, Ledger, Ledger Entry, Ledger Account, Line, double-entry, idempotency key).
+  - url: https://fragment.dev/api-reference
+    type: APIReference
+    note: GraphQL queries, mutations, and types; OAuth2 client-credentials authentication with region-scoped token endpoint.
+  - url: https://api.fragment.dev/schema.graphql
+    type: GraphQLSchema
+    note: Canonical GraphQL schema (Ledger, LedgerAccount, LedgerEntry, LedgerLine, Schema, Currency, balance queries, union result types).
+actions:
+  graphqlSchemaPath: graphql/fragment-dev-schema.graphql
+  openapiCreated: false
+  reason: |
+    Fragment is GraphQL-first with no separately documented REST resource API,
+    so no OpenAPI document was fabricated. The GraphQL schema is the primary
+    machine-readable contract. Postman and Open Collections capture the GraphQL
+    POST-over-HTTP examples and the OAuth2 token exchange.
+maintainers:
+- FN: Kin Lane
+  email: kin@apievangelist.com

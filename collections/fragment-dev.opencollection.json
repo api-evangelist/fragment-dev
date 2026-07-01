@@ -1,0 +1,163 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Fragment Ledger GraphQL API",
+    "version": "1.0"
+  },
+  "request": {
+    "auth": {
+      "type": "bearer",
+      "token": "{{bearerToken}}"
+    }
+  },
+  "items": [
+    {
+      "info": { "name": "Authentication", "type": "folder" },
+      "items": [
+        {
+          "info": { "name": "Get OAuth2 Access Token (client_credentials)", "type": "http" },
+          "http": {
+            "method": "POST",
+            "url": "https://auth.us-west-2.fragment.dev/oauth2/token",
+            "auth": { "type": "basic", "username": "{{clientId}}", "password": "{{clientSecret}}" },
+            "headers": [ { "name": "Content-Type", "value": "application/x-www-form-urlencoded" } ],
+            "body": {
+              "type": "urlencoded",
+              "data": "grant_type=client_credentials&scope=https://api.us-west-2.fragment.dev/*&client_id={{clientId}}"
+            }
+          },
+          "docs": "Exchange client_id/client_secret (Basic auth) for a Bearer access token that expires in ~1 hour."
+        }
+      ]
+    },
+    {
+      "info": { "name": "Schema", "type": "folder" },
+      "items": [
+        {
+          "info": { "name": "storeSchema", "type": "http" },
+          "http": {
+            "method": "POST",
+            "url": "https://api.us-west-2.fragment.dev/graphql",
+            "headers": [ { "name": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "type": "json",
+              "data": "{\"query\":\"mutation StoreSchema($key: String!, $schema: JSON!) { storeSchema(key: $key, schema: $schema) { __typename ... on StoreSchemaResult { schema { key version } } ... on BadRequestError { code message } } }\",\"variables\":{\"key\":\"wallet-v1\",\"schema\":{\"accounts\":[],\"entryTypes\":[]}}}"
+            }
+          },
+          "docs": "Store / version a ledger Schema (chart of accounts + entry types)."
+        }
+      ]
+    },
+    {
+      "info": { "name": "Ledgers", "type": "folder" },
+      "items": [
+        {
+          "info": { "name": "createLedger", "type": "http" },
+          "http": {
+            "method": "POST",
+            "url": "https://api.us-west-2.fragment.dev/graphql",
+            "headers": [ { "name": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "type": "json",
+              "data": "{\"query\":\"mutation CreateLedger($ik: SafeString!, $name: String!, $schemaKey: String!) { createLedger(ik: $ik, name: $name, schemaKey: $schemaKey) { __typename ... on CreateLedgerResult { ledger { ik name type } } ... on BadRequestError { code message } } }\",\"variables\":{\"ik\":\"main\",\"name\":\"Main Ledger\",\"schemaKey\":\"wallet-v1\"}}"
+            }
+          },
+          "docs": "Create a new ledger from a stored Schema."
+        },
+        {
+          "info": { "name": "ledger (query)", "type": "http" },
+          "http": {
+            "method": "POST",
+            "url": "https://api.us-west-2.fragment.dev/graphql",
+            "headers": [ { "name": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "type": "json",
+              "data": "{\"query\":\"query GetLedger($ik: SafeString!) { ledger(ik: $ik) { ik name type created ledgerAccounts { path type } } }\",\"variables\":{\"ik\":\"main\"}}"
+            }
+          },
+          "docs": "Retrieve a ledger's configuration, schema, and accounts."
+        }
+      ]
+    },
+    {
+      "info": { "name": "Ledger Entries", "type": "folder" },
+      "items": [
+        {
+          "info": { "name": "addLedgerEntry (idempotent)", "type": "http" },
+          "http": {
+            "method": "POST",
+            "url": "https://api.us-west-2.fragment.dev/graphql",
+            "headers": [ { "name": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "type": "json",
+              "data": "{\"query\":\"mutation PostEntry($ik: SafeString!) { addLedgerEntry(ledgerIk: \\\"main\\\", ik: $ik, type: \\\"deposit\\\", date: \\\"2026-07-01\\\", parameters: {amount: \\\"10.00\\\", currency: {code: \\\"USD\\\"}, userId: \\\"user-123\\\"}) { __typename ... on AddLedgerEntryResult { entry { ik posted lines { amount currency { code } type account { path } } } } ... on BadRequestError { code message } } }\",\"variables\":{\"ik\":\"deposit-0001\"}}"
+            }
+          },
+          "docs": "Post a balanced double-entry ledger entry. The ik makes retries safe."
+        },
+        {
+          "info": { "name": "reverseLedgerEntry", "type": "http" },
+          "http": {
+            "method": "POST",
+            "url": "https://api.us-west-2.fragment.dev/graphql",
+            "headers": [ { "name": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "type": "json",
+              "data": "{\"query\":\"mutation Reverse($ik: SafeString!) { reverseLedgerEntry(ledgerIk: \\\"main\\\", ik: $ik, entryIk: \\\"deposit-0001\\\") { __typename ... on ReverseLedgerEntryResult { entry { ik isReversal } } ... on BadRequestError { code message } } }\",\"variables\":{\"ik\":\"reverse-0001\"}}"
+            }
+          },
+          "docs": "Reverse a previously posted ledger entry."
+        }
+      ]
+    },
+    {
+      "info": { "name": "Balances", "type": "folder" },
+      "items": [
+        {
+          "info": { "name": "getLedgerBalances", "type": "http" },
+          "http": {
+            "method": "POST",
+            "url": "https://api.us-west-2.fragment.dev/graphql",
+            "headers": [ { "name": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "type": "json",
+              "data": "{\"query\":\"query Balances { getLedgerBalances(ledgerIk: \\\"main\\\") { amount currency { code } } }\"}"
+            }
+          },
+          "docs": "Read overall balances for a ledger."
+        },
+        {
+          "info": { "name": "getLedgerAccountLines", "type": "http" },
+          "http": {
+            "method": "POST",
+            "url": "https://api.us-west-2.fragment.dev/graphql",
+            "headers": [ { "name": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "type": "json",
+              "data": "{\"query\":\"query Lines { getLedgerAccountLines(ledgerIk: \\\"main\\\", path: \\\"user_funds/user-123\\\", first: 20) { nodes { amount currency { code } type posted } pageInfo { hasNextPage endCursor } } }\"}"
+            }
+          },
+          "docs": "Read the debit/credit lines behind an account."
+        }
+      ]
+    },
+    {
+      "info": { "name": "Reconciliation", "type": "folder" },
+      "items": [
+        {
+          "info": { "name": "reconcileTx (idempotent by txId)", "type": "http" },
+          "http": {
+            "method": "POST",
+            "url": "https://api.us-west-2.fragment.dev/graphql",
+            "headers": [ { "name": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "type": "json",
+              "data": "{\"query\":\"mutation Reconcile { reconcileTx(ledgerIk: \\\"main\\\", txId: \\\"psp-tx-987\\\", parameters: {amount: \\\"10.00\\\", currency: {code: \\\"USD\\\"}}) { __typename ... on ReconcileTxResult { reconciled } ... on BadRequestError { code message } } }\"}"
+            }
+          },
+          "docs": "Reconcile a transaction against external money movement, idempotent by transaction ID."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,257 @@
+"""
+Fragment Ledger GraphQL Schema
+Representative schema for the Fragment (fragment.dev) ledger API.
+
+Fragment is GraphQL-first. This schema models the real, documented surface:
+defining a Schema (chart of accounts + entry types), creating Ledgers, posting
+immutable balanced double-entry Ledger Entries, reading balances and lines, and
+reconciling against external money movement. All write mutations are idempotent
+via an idempotency key (ik).
+
+Source: https://fragment.dev/api-reference , https://api.fragment.dev/schema.graphql
+"""
+
+# ─────────────────────────────────────────────
+# Scalars
+# ─────────────────────────────────────────────
+
+"An arbitrary-precision decimal represented as a string, e.g. \"10.00\"."
+scalar Decimal
+
+"An ISO-8601 date, e.g. \"2026-07-01\"."
+scalar Date
+
+"An ISO-8601 date-time."
+scalar DateTime
+
+"A validated, length-bounded string used for idempotency keys and identifiers."
+scalar SafeString
+
+"Arbitrary JSON, used for entry parameters, tags, and conditions."
+scalar JSON
+
+# ─────────────────────────────────────────────
+# Enums
+# ─────────────────────────────────────────────
+
+"Type of ledger. An event ledger records entries; a balance ledger snapshots balances."
+enum LedgerType {
+  event
+  balance
+}
+
+"The accounting classification of a ledger account."
+enum LedgerAccountType {
+  asset
+  liability
+  income
+  expense
+}
+
+"Whether an account holds a single currency or many."
+enum CurrencyMode {
+  single
+  multi
+}
+
+"Whether a line is a debit or a credit."
+enum LineType {
+  debit
+  credit
+}
+
+"How aggressively balance updates are made consistent."
+enum BalanceUpdateConsistencyMode {
+  eventual
+  strong
+}
+
+# ─────────────────────────────────────────────
+# Core Types
+# ─────────────────────────────────────────────
+
+"A currency, either an ISO 4217 code or a custom currency defined in the schema."
+type Currency {
+  code: String!
+  customCurrencyId: String
+  precision: Int
+}
+
+"A container for money. Accounts are hierarchical via path and typed for accounting."
+type LedgerAccount {
+  id: ID!
+  name: String!
+  path: String!
+  type: LedgerAccountType!
+  currency: Currency
+  currencyMode: CurrencyMode!
+  created: DateTime!
+
+  "The account's own balance, excluding child accounts."
+  ownBalance(currency: String): Balance
+  "The rolled-up balance including child accounts."
+  balance(currency: String): Balance
+  "Balances across every currency held by the account."
+  balances: [Balance!]!
+  "Child accounts beneath this account in the hierarchy."
+  childLedgerAccounts: [LedgerAccount!]!
+  "Debit/credit lines that have posted against this account."
+  lines(first: Int, after: String): LedgerLineConnection!
+}
+
+"A balance for an account in a given currency."
+type Balance {
+  amount: Decimal!
+  currency: Currency!
+  ownAmount: Decimal
+  childAmount: Decimal
+  asOf: DateTime
+}
+
+"A single debit or credit against one account within a ledger entry."
+type LedgerLine {
+  id: ID!
+  amount: Decimal!
+  currency: Currency!
+  type: LineType!
+  account: LedgerAccount!
+  description: String
+  posted: DateTime!
+  isReversal: Boolean!
+  isReversed: Boolean!
+}
+
+type LedgerLineConnection {
+  nodes: [LedgerLine!]!
+  pageInfo: PageInfo!
+}
+
+"An immutable posting to the ledger, composed of balanced debit/credit lines."
+type LedgerEntry {
+  id: ID!
+  "The idempotency key that made this entry safe to retry."
+  ik: SafeString!
+  type: String!
+  date: Date!
+  posted: DateTime!
+  "Up to 30 balanced lines per entry."
+  lines: [LedgerLine!]!
+  tags: JSON
+  isReversal: Boolean!
+  isReversed: Boolean!
+}
+
+type LedgerEntryConnection {
+  nodes: [LedgerEntry!]!
+  pageInfo: PageInfo!
+}
+
+"A versioned configuration defining the chart of accounts and entry types."
+type Schema {
+  key: String!
+  version: Int!
+  created: DateTime!
+  "The raw schema definition (accounts, entry types, currency modes)."
+  definition: JSON!
+}
+
+"An isolated database for tracking money, created from a Schema."
+type Ledger {
+  id: ID!
+  ik: SafeString!
+  name: String!
+  type: LedgerType!
+  created: DateTime!
+  balanceUTCOffset: String
+  schema: Schema
+  ledgerAccounts: [LedgerAccount!]!
+  ledgerEntries(first: Int, after: String): LedgerEntryConnection!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  endCursor: String
+}
+
+# ─────────────────────────────────────────────
+# Error / Union Result Types
+# ─────────────────────────────────────────────
+
+"A caller-supplied request was invalid."
+type BadRequestError {
+  code: String!
+  message: String!
+}
+
+"An unexpected server-side error occurred."
+type InternalError {
+  code: String!
+  message: String!
+}
+
+type StoreSchemaResult { schema: Schema! }
+type CreateLedgerResult { ledger: Ledger! }
+type AddLedgerEntryResult { entry: LedgerEntry! }
+type ReverseLedgerEntryResult { entry: LedgerEntry! }
+type ReconcileTxResult { reconciled: Boolean! entry: LedgerEntry }
+type SyncCustomAccountsResult { count: Int! }
+type SyncCustomTxsResult { count: Int! }
+
+union StoreSchemaResponse = StoreSchemaResult | BadRequestError | InternalError
+union CreateLedgerResponse = CreateLedgerResult | BadRequestError | InternalError
+union AddLedgerEntryResponse = AddLedgerEntryResult | BadRequestError | InternalError
+union ReverseLedgerEntryResponse = ReverseLedgerEntryResult | BadRequestError | InternalError
+union ReconcileTxResponse = ReconcileTxResult | BadRequestError | InternalError
+union SyncCustomAccountsResponse = SyncCustomAccountsResult | BadRequestError | InternalError
+union SyncCustomTxsResponse = SyncCustomTxsResult | BadRequestError | InternalError
+
+# ─────────────────────────────────────────────
+# Query Root
+# ─────────────────────────────────────────────
+
+type Query {
+  "Retrieve a ledger's configuration, schema, and accounts."
+  ledger(ik: SafeString!): Ledger
+
+  "Retrieve a single account by path within a ledger."
+  ledgerAccount(ledgerIk: SafeString!, path: String!): LedgerAccount
+
+  "Retrieve a specific posted entry by its idempotency key."
+  ledgerEntry(ledgerIk: SafeString!, ik: SafeString!): LedgerEntry
+
+  "Read overall balances for a ledger."
+  getLedgerBalances(ledgerIk: SafeString!, currency: String): [Balance!]!
+
+  "Read balances for specific accounts by path."
+  getLedgerAccountBalances(ledgerIk: SafeString!, paths: [String!]!, currency: String): [Balance!]!
+
+  "Read the debit/credit lines behind an account."
+  getLedgerAccountLines(ledgerIk: SafeString!, path: String!, first: Int, after: String): LedgerLineConnection!
+}
+
+# ─────────────────────────────────────────────
+# Mutation Root  (all writes are idempotent via `ik`)
+# ─────────────────────────────────────────────
+
+type Mutation {
+  "Store / version a ledger Schema definition."
+  storeSchema(key: String!, schema: JSON!): StoreSchemaResponse!
+
+  "Create a new ledger from a stored Schema."
+  createLedger(ik: SafeString!, name: String!, schemaKey: String!, type: LedgerType): CreateLedgerResponse!
+
+  "Post a balanced double-entry ledger entry."
+  addLedgerEntry(ledgerIk: SafeString!, ik: SafeString!, type: String!, date: Date!, parameters: JSON!, tags: JSON): AddLedgerEntryResponse!
+
+  "Reverse a previously posted ledger entry."
+  reverseLedgerEntry(ledgerIk: SafeString!, ik: SafeString!, entryIk: SafeString!): ReverseLedgerEntryResponse!
+
+  "Reconcile a transaction against external money movement (idempotent by transaction ID)."
+  reconcileTx(ledgerIk: SafeString!, txId: SafeString!, parameters: JSON!): ReconcileTxResponse!
+
+  "Ingest / sync external accounts (idempotent by account ID)."
+  syncCustomAccounts(ledgerIk: SafeString!, accounts: JSON!): SyncCustomAccountsResponse!
+
+  "Ingest / sync external transactions (idempotent by transaction ID)."
+  syncCustomTxs(ledgerIk: SafeString!, txs: JSON!): SyncCustomTxsResponse!
+}

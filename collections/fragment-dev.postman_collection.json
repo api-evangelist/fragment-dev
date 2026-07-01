@@ -1,0 +1,207 @@
+{
+  "info": {
+    "name": "Fragment Ledger GraphQL API",
+    "description": "GraphQL-first ledger API for engineering teams. OAuth2 client-credentials for auth; a single region-scoped GraphQL endpoint (https://api.fragment.dev/graphql) for schema, ledgers, entries, balances, and reconciliation. All write mutations are idempotent via an idempotency key (ik).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "graphqlUrl",
+      "value": "https://api.us-west-2.fragment.dev/graphql"
+    },
+    {
+      "key": "tokenUrl",
+      "value": "https://auth.us-west-2.fragment.dev/oauth2/token"
+    },
+    {
+      "key": "scope",
+      "value": "https://api.us-west-2.fragment.dev/*"
+    },
+    {
+      "key": "clientId",
+      "value": "your-client-id"
+    },
+    {
+      "key": "bearerToken",
+      "value": "your-access-token"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Get OAuth2 Access Token (client_credentials)",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                { "key": "username", "value": "{{clientId}}" },
+                { "key": "password", "value": "{{clientSecret}}" }
+              ]
+            },
+            "header": [
+              { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+            ],
+            "url": { "raw": "{{tokenUrl}}", "host": ["{{tokenUrl}}"] },
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "grant_type", "value": "client_credentials" },
+                { "key": "scope", "value": "{{scope}}" },
+                { "key": "client_id", "value": "{{clientId}}" }
+              ]
+            },
+            "description": "Exchange client_id/client_secret (Basic auth) for a Bearer access token that expires in ~1 hour."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Schema",
+      "item": [
+        {
+          "name": "storeSchema",
+          "request": {
+            "method": "POST",
+            "auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{bearerToken}}" } ] },
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{graphqlUrl}}", "host": ["{{graphqlUrl}}"] },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"query\": \"mutation StoreSchema($key: String!, $schema: JSON!) { storeSchema(key: $key, schema: $schema) { __typename ... on StoreSchemaResult { schema { key version } } ... on BadRequestError { code message } } }\",\n  \"variables\": {\n    \"key\": \"wallet-v1\",\n    \"schema\": { \"accounts\": [], \"entryTypes\": [] }\n  }\n}"
+            },
+            "description": "Store / version a ledger Schema (chart of accounts + entry types)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Ledgers",
+      "item": [
+        {
+          "name": "createLedger",
+          "request": {
+            "method": "POST",
+            "auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{bearerToken}}" } ] },
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{graphqlUrl}}", "host": ["{{graphqlUrl}}"] },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"query\": \"mutation CreateLedger($ik: SafeString!, $name: String!, $schemaKey: String!) { createLedger(ik: $ik, name: $name, schemaKey: $schemaKey) { __typename ... on CreateLedgerResult { ledger { ik name type } } ... on BadRequestError { code message } } }\",\n  \"variables\": {\n    \"ik\": \"main\",\n    \"name\": \"Main Ledger\",\n    \"schemaKey\": \"wallet-v1\"\n  }\n}"
+            },
+            "description": "Create a new ledger from a stored Schema."
+          }
+        },
+        {
+          "name": "ledger (query)",
+          "request": {
+            "method": "POST",
+            "auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{bearerToken}}" } ] },
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{graphqlUrl}}", "host": ["{{graphqlUrl}}"] },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"query\": \"query GetLedger($ik: SafeString!) { ledger(ik: $ik) { ik name type created ledgerAccounts { path type } } }\",\n  \"variables\": { \"ik\": \"main\" }\n}"
+            },
+            "description": "Retrieve a ledger's configuration, schema, and accounts."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Ledger Entries",
+      "item": [
+        {
+          "name": "addLedgerEntry (idempotent)",
+          "request": {
+            "method": "POST",
+            "auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{bearerToken}}" } ] },
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{graphqlUrl}}", "host": ["{{graphqlUrl}}"] },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"query\": \"mutation PostEntry($ik: SafeString!) { addLedgerEntry(ledgerIk: \\\"main\\\", ik: $ik, type: \\\"deposit\\\", date: \\\"2026-07-01\\\", parameters: {amount: \\\"10.00\\\", currency: {code: \\\"USD\\\"}, userId: \\\"user-123\\\"}) { __typename ... on AddLedgerEntryResult { entry { ik posted lines { amount currency { code } type account { path } } } } ... on BadRequestError { code message } } }\",\n  \"variables\": { \"ik\": \"deposit-0001\" }\n}"
+            },
+            "description": "Post a balanced double-entry ledger entry. The ik makes retries safe."
+          }
+        },
+        {
+          "name": "reverseLedgerEntry",
+          "request": {
+            "method": "POST",
+            "auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{bearerToken}}" } ] },
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{graphqlUrl}}", "host": ["{{graphqlUrl}}"] },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"query\": \"mutation Reverse($ik: SafeString!) { reverseLedgerEntry(ledgerIk: \\\"main\\\", ik: $ik, entryIk: \\\"deposit-0001\\\") { __typename ... on ReverseLedgerEntryResult { entry { ik isReversal } } ... on BadRequestError { code message } } }\",\n  \"variables\": { \"ik\": \"reverse-0001\" }\n}"
+            },
+            "description": "Reverse a previously posted ledger entry."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Balances",
+      "item": [
+        {
+          "name": "getLedgerBalances",
+          "request": {
+            "method": "POST",
+            "auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{bearerToken}}" } ] },
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{graphqlUrl}}", "host": ["{{graphqlUrl}}"] },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"query\": \"query Balances { getLedgerBalances(ledgerIk: \\\"main\\\") { amount currency { code } } }\"\n}"
+            },
+            "description": "Read overall balances for a ledger."
+          }
+        },
+        {
+          "name": "getLedgerAccountLines",
+          "request": {
+            "method": "POST",
+            "auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{bearerToken}}" } ] },
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{graphqlUrl}}", "host": ["{{graphqlUrl}}"] },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"query\": \"query Lines { getLedgerAccountLines(ledgerIk: \\\"main\\\", path: \\\"user_funds/user-123\\\", first: 20) { nodes { amount currency { code } type posted } pageInfo { hasNextPage endCursor } } }\"\n}"
+            },
+            "description": "Read the debit/credit lines behind an account."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reconciliation",
+      "item": [
+        {
+          "name": "reconcileTx (idempotent by txId)",
+          "request": {
+            "method": "POST",
+            "auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{bearerToken}}" } ] },
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{graphqlUrl}}", "host": ["{{graphqlUrl}}"] },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"query\": \"mutation Reconcile { reconcileTx(ledgerIk: \\\"main\\\", txId: \\\"psp-tx-987\\\", parameters: {amount: \\\"10.00\\\", currency: {code: \\\"USD\\\"}}) { __typename ... on ReconcileTxResult { reconciled } ... on BadRequestError { code message } } }\"\n}"
+            },
+            "description": "Reconcile a transaction against external money movement, idempotent by transaction ID."
+          }
+        }
+      ]
+    }
+  ]
+}

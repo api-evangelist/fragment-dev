@@ -1,0 +1,107 @@
+specification: API Commons Plans
+specificationVersion: '0.1'
+schema: https://raw.githubusercontent.com/api-evangelist/interface-research/main/schema/api-commons.yml#/$defs/Plans
+provider: Fragment
+providerId: fragment-dev
+created: '2026-07-01'
+modified: '2026-07-01'
+reconciled: false
+tags:
+- Ledger
+- Double-Entry
+- Fintech
+- Payments
+- Plans
+description: >-
+  Fragment does not publish transparent self-service list pricing. Pricing is
+  sales-quoted and, per Fragment's public positioning, is typically usage-based
+  and priced against ledger volume (for example, ledger entries / postings
+  processed) rather than seats. Teams start with a demo / trial and move to a
+  committed contract. Values below are structural placeholders, not quoted
+  rates; confirm current terms with Fragment sales during reconciliation.
+notes: >-
+  As of the created date, fragment.dev routes pricing through a "Talk to us" /
+  demo flow rather than a public pricing page with dollar figures. Do not treat
+  any number here as a quoted rate.
+sources:
+- https://fragment.dev
+- https://fragment.dev/docs
+plans:
+- id: fragment-trial
+  name: Trial / Sandbox
+  type: free
+  description: >-
+    Evaluation access to define a schema, create a ledger, and post entries in
+    a non-production environment. Availability and limits are set by Fragment.
+  entries:
+  - label: Evaluation Access
+    name: trial
+    type: flat
+    metric: access
+    limit: -1
+    timeFrame: month
+    geo: global
+    unit: 1
+    price: contact sales
+    userMultiplied: false
+  elements:
+  - name: Schema Definition
+  - name: Ledger Creation
+  - name: Ledger Entries
+  - name: Balances and Lines
+- id: fragment-usage
+  name: Usage (Sales-Quoted)
+  type: usage
+  description: >-
+    Production usage priced against ledger volume. Rate structure is negotiated;
+    the primary meter is ledger entries / postings processed.
+  entries:
+  - label: Ledger Entries Posted
+    name: ledger_entries
+    type: usage
+    metric: entries
+    limit: -1
+    timeFrame: month
+    geo: global
+    unit: 1
+    price: sales-quoted (volume-based)
+    userMultiplied: false
+  - label: Ledgers
+    name: ledgers
+    type: usage
+    metric: ledgers
+    limit: -1
+    timeFrame: month
+    geo: global
+    unit: 1
+    price: sales-quoted
+    userMultiplied: false
+  elements:
+  - name: GraphQL Ledger API
+  - name: Reconciliation
+  - name: Multi-Currency Accounts
+  - name: Idempotent Writes
+- id: fragment-enterprise
+  name: Enterprise
+  type: enterprise
+  description: >-
+    Committed-volume agreements with dedicated regions, higher throughput,
+    SLAs, and support. Contact Fragment sales.
+  entries:
+  - label: Enterprise Agreement
+    name: enterprise
+    type: flat
+    metric: contract
+    limit: -1
+    timeFrame: year
+    geo: global
+    unit: 1
+    price: contact sales
+    userMultiplied: false
+  elements:
+  - name: Committed Volume Pricing
+  - name: Regional Deployment
+  - name: SLAs and Support
+maintainers:
+- FN: Kin Lane
+  email: kin@apievangelist.com
