@@ -150,6 +150,8 @@ apis:
     ingest external accounts and transactions to keep the ledger and source systems
     in agreement.
 common:
+- type: DomainSecurity
+  url: security/fragment-dev-domain-security.yml
 - type: LinkedIn
   url: https://www.linkedin.com/company/fragment-dev
 - type: Website
