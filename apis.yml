@@ -8,6 +8,17 @@ description: Fragment is a ledger API for engineering teams. It provides a real-
   define a Schema (chart of accounts and entry types), create Ledgers, post immutable
   Ledger Entries composed of balanced debit/credit lines, and read balances and lines
   back through a single GraphQL endpoint. Every write mutation is idempotent.
+deliveryModel:
+  model: saas
+  open_source: false
+  commercial: true
+  callable_host: false
+  label: Hosted service · you call their endpoint
+  confidence: medium
+  source:
+  - pricing
+  generated: '2026-08-28'
+  method: derived
 accessModel:
   pricing: freemium
   onboarding: unknown
