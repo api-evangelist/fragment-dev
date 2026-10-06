@@ -42,7 +42,7 @@ tags:
 - GraphQL
 - Balances
 created: '2026-07-01'
-modified: '2026-07-01'
+modified: '2026-10-06'
 specificationVersion: '0.23'
 apis:
 - aid: fragment-dev:fragment-ledger-graphql-api
@@ -173,6 +173,8 @@ apis:
     ingest external accounts and transactions to keep the ledger and source systems
     in agreement.
 common:
+- url: https://fragment.dev/blog
+  type: Blog
 - type: DomainSecurity
   url: security/fragment-dev-domain-security.yml
 - type: LinkedIn
