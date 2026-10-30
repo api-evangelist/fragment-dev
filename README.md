@@ -1,4 +1,4 @@
-# Fragment (fragment-dev)
+# Fragment
 
 <!-- API-EVANGELIST-PROVENANCE:BEGIN -->
 > ### About this repository
@@ -64,163 +64,123 @@
 > Full detail: **[Where this data comes from](https://apievangelist.com/about/where-our-data-comes-from)**
 <!-- API-EVANGELIST-PROVENANCE:END -->
 
-Fragment is a ledger API for engineering teams. It provides a real-time, double-entry ledger to track money movement, model balances, and reconcile against external systems (banks, processors, PSPs). The product is GraphQL-first — developers define a Schema (chart of accounts and entry types), create Ledgers, post immutable Ledger Entries composed of balanced debit/credit lines, and read balances and lines back through a single GraphQL endpoint. Every write mutation is idempotent.
+Fragment is a ledger API for engineering teams. It provides a real-time, double-entry ledger to track money movement, model balances, and reconcile against external systems (banks, processors, PSPs). The product is GraphQL-first - developers define a Schema (chart of accounts and entry types), create Ledgers, post immutable Ledger Entries composed of balanced debit/credit lines, and read balances and lines back through a single GraphQL endpoint. Every write mutation is idempotent.
 
-**APIs.json:** [https://raw.githubusercontent.com/api-evangelist/fragment-dev/refs/heads/main/apis.yml](https://raw.githubusercontent.com/api-evangelist/fragment-dev/refs/heads/main/apis.yml)
+**Areas:** Ledger · Double-Entry · Accounting · Fintech · Payments · Reconciliation · GraphQL · Balances
 
-## Tags
+## Fragment on APIs.io
 
-- Ledger
-- Double-Entry
-- Accounting
-- Fintech
-- Payments
-- Reconciliation
-- GraphQL
-- Balances
+Everything profiled for Fragment is published on APIs.io rather than in this repository. Start at the provider page — **[apis.io/providers/fragment-dev/](https://apis.io/providers/fragment-dev/)** — or go straight to one of the APIs or properties below.
 
-## Timestamps
+### APIs (6)
 
-- **Created:** 2026-07-01
-- **Modified:** 2026-07-01
+- [Fragment Ledger GraphQL API](https://apis.io/apis/fragment-dev/fragment-ledger-graphql-api/) — Single GraphQL endpoint for defining a ledger Schema, creating Ledgers, posting balanced double-entry Ledger Entries, and reading balances and lines. All…
+- [Fragment Schema API](https://apis.io/apis/fragment-dev/fragment-schema-api/) — Define and version the ledger Schema - the chart of accounts, account types (asset, liability, income, expense), currency modes, and the ledger entry types…
+- [Fragment Ledgers API](https://apis.io/apis/fragment-dev/fragment-ledgers-api/) — Create and query Ledgers from a stored Schema. A Ledger is an isolated database for tracking money for a use case, tenant, or environment, created with…
+- [Fragment Ledger Entries API](https://apis.io/apis/fragment-dev/fragment-ledger-entries-api/) — Post immutable, balanced double-entry Ledger Entries made of debit and credit lines against accounts. Uses addLedgerEntry with an idempotency key (ik),…
+- [Fragment Balances API](https://apis.io/apis/fragment-dev/fragment-balances-api/) — Read real-time balances and the underlying lines. Query overall ledger balances (getLedgerBalances), per-account balances (getLedgerAccountBalances), and…
+- [Fragment Reconciliation API](https://apis.io/apis/fragment-dev/fragment-reconciliation-api/) — Match ledger activity against external money movement. reconcileTx reconciles a transaction idempotently by transaction ID, while syncCustomAccounts and…
 
-## Authentication
+### Published properties
 
-Fragment uses the **OAuth2 client-credentials** flow. Exchange a `client_id`/`client_secret` (HTTP Basic) at a region-scoped token endpoint (for example `https://auth.us-west-2.fragment.dev/oauth2/token`) for a Bearer access token (~1 hour lifetime), then send it on every GraphQL request. See [graphql/fragment-dev-graphql.md](graphql/fragment-dev-graphql.md).
+Each property below is a page on APIs.io carrying the machine-readable artifact and what it says.
 
-## APIs
+#### GraphQL (1)
 
-### Fragment Ledger GraphQL API
+GraphQL schemas.
 
-Single GraphQL endpoint for defining a ledger Schema, creating Ledgers, posting balanced double-entry Ledger Entries, and reading balances and lines. All write mutations are idempotent via an idempotency key (ik). The endpoint is region-scoped (for example api.us-west-2.fragment.dev) and authenticated with OAuth2 client-credentials Bearer tokens.
+- [Fragment Ledger GraphQL API](https://apis.io/graphqls/fragment-dev/fragment-dev-graphql/)
 
-- **Human URL:** [https://fragment.dev/docs](https://fragment.dev/docs)
-- **Base URL:** `https://api.fragment.dev/graphql`
+#### Collections (1)
 
-#### Tags
+Postman and Open Collection request collections.
 
-- Ledger
-- GraphQL
-- Double-Entry
-- Balances
+- [Fragment Ledger GraphQL API](https://apis.io/collections/fragment-dev/open-fragment-dev/)
 
-#### Properties
+#### Security (1)
 
-- [Documentation](https://fragment.dev/docs)
-- [API Reference](https://fragment.dev/api-reference)
-- [GraphQL](graphql/fragment-dev-graphql.md)
-- [GraphQL Schema](graphql/fragment-dev-schema.graphql)
-- [Postman Collection](collections/fragment-dev.postman_collection.json) — [Postman Collection 2.1](https://schema.getpostman.com/json/collection/v2.1.0/collection.json)
-- [Open Collection](collections/fragment-dev.opencollection.json) — [Open Collection 1.0](https://schema.opencollection.com/opencollection/v1.0.0.json)
+Authentication, trust centre, and vulnerability disclosure.
 
-### Fragment Schema API
+- [Fragment Dev Domain Security](https://apis.io/security/fragment-dev/fragment-dev-domain-security/)
 
-Define and version the ledger Schema — the chart of accounts, account types (asset, liability, income, expense), currency modes, and the ledger entry types your product posts. Stored with the storeSchema mutation and read back via the schema field on a ledger.
+#### Plans and pricing (1)
 
-- **Human URL:** [https://fragment.dev/docs](https://fragment.dev/docs)
-- **Base URL:** `https://api.fragment.dev/graphql`
+Published plans, tiers and prices.
 
-#### Tags
+- [Fragment Dev Plans Pricing](https://apis.io/plans/fragment-dev/fragment-dev-plans-pricing/)
 
-- Schema
-- Chart of Accounts
-- Entry Types
+#### Rate limits (1)
 
-#### Properties
+Published request limits.
 
-- [Documentation](https://fragment.dev/docs)
-- [GraphQL](graphql/fragment-dev-graphql.md)
-- [GraphQL Schema](graphql/fragment-dev-schema.graphql)
+- [Fragment Dev Rate Limits](https://apis.io/rate-limits/fragment-dev/fragment-dev-rate-limits/)
 
-### Fragment Ledgers API
+#### FinOps (1)
 
-Create and query Ledgers from a stored Schema. A Ledger is an isolated database for tracking money for a use case, tenant, or environment, created with createLedger and read with the ledger query.
+What the API costs to run, by operation.
 
-- **Human URL:** [https://fragment.dev/docs](https://fragment.dev/docs)
-- **Base URL:** `https://api.fragment.dev/graphql`
+- [Fragment Dev Finops](https://apis.io/finops/fragment-dev/fragment-dev-finops/)
 
-#### Tags
+## Where to find this API
 
-- Ledgers
-- Provisioning
+Links to the company's own pages. This repository publishes no copy of their specifications — the canonical document is theirs and lives at the URLs below.
 
-#### Properties
-
-- [Documentation](https://fragment.dev/docs)
-- [GraphQL](graphql/fragment-dev-graphql.md)
-- [GraphQL Schema](graphql/fragment-dev-schema.graphql)
-
-### Fragment Ledger Entries API
-
-Post immutable, balanced double-entry Ledger Entries made of debit and credit lines against accounts. Uses addLedgerEntry with an idempotency key (ik), reverseLedgerEntry to correct posted entries, and the ledgerEntry query to read a single entry back.
-
-- **Human URL:** [https://fragment.dev/docs](https://fragment.dev/docs)
-- **Base URL:** `https://api.fragment.dev/graphql`
-
-#### Tags
-
-- Ledger Entries
-- Postings
-- Double-Entry
-- Idempotency
-
-#### Properties
-
-- [Documentation](https://fragment.dev/docs)
-- [GraphQL](graphql/fragment-dev-graphql.md)
-- [GraphQL Schema](graphql/fragment-dev-schema.graphql)
-
-### Fragment Balances API
-
-Read real-time balances and the underlying lines. Query overall ledger balances (getLedgerBalances), per-account balances (getLedgerAccountBalances), and the debit/credit lines behind an account (getLedgerAccountLines), across single or multi-currency accounts.
-
-- **Human URL:** [https://fragment.dev/docs](https://fragment.dev/docs)
-- **Base URL:** `https://api.fragment.dev/graphql`
-
-#### Tags
-
-- Balances
-- Lines
-- Reporting
-
-#### Properties
-
-- [Documentation](https://fragment.dev/docs)
-- [GraphQL](graphql/fragment-dev-graphql.md)
-- [GraphQL Schema](graphql/fragment-dev-schema.graphql)
-
-### Fragment Reconciliation API
-
-Match ledger activity against external money movement. reconcileTx reconciles a transaction idempotently by transaction ID, while syncCustomAccounts and syncCustomTxs ingest external accounts and transactions to keep the ledger and source systems in agreement.
-
-- **Human URL:** [https://fragment.dev/docs](https://fragment.dev/docs)
-- **Base URL:** `https://api.fragment.dev/graphql`
-
-#### Tags
-
-- Reconciliation
-- Payments
-- Sync
-
-#### Properties
-
-- [Documentation](https://fragment.dev/docs)
-- [GraphQL](graphql/fragment-dev-graphql.md)
-- [GraphQL Schema](graphql/fragment-dev-schema.graphql)
-
-## Common Properties
-
-- [LinkedIn](https://www.linkedin.com/company/fragment-dev)
 - [Website](https://fragment.dev)
 - [Documentation](https://fragment.dev/docs)
-- [Sign Up](https://dashboard.fragment.dev)
-- [Status Page](https://status.fragment.dev)
-- [Change Log](https://fragment.dev/changelog)
-- [Plans](plans/fragment-dev-plans-pricing.yml)
-- [Rate Limits](rate-limits/fragment-dev-rate-limits.yml)
-- [Fin Ops](finops/fragment-dev-finops.yml)
+- [Sign up](https://dashboard.fragment.dev)
+- [Changelog](https://fragment.dev/changelog)
+- [Blog](https://fragment.dev/blog)
+- [Status](https://status.fragment.dev)
 
-## Maintainers
+## API Evangelist rating
 
-**FN:** Kin Lane
-**Email:** kin@apievangelist.com
+**Kin Score 24.8** — emerging · rubric 0.24.0 · scored 2026-10-17
+
+| Facet | Score |
+|---|---|
+| Discoverability | 71.4 |
+| Contract quality | 35.1 |
+| Contract governance | 0.0 |
+| Operational transparency | 36.8 |
+| Developer ergonomics | 23.3 |
+| Access clarity | 7.9 |
+
+**Agent readiness 13.6** — agent-aware
+
+| Agent-readiness dimension | Result |
+|---|---|
+| Spec Presence | yes |
+| Agentic Access | — |
+| Reversibility Documented | — |
+| MCP Server | — |
+| Auth Clarity | — |
+| Idempotency | — |
+| Error Semantics | — |
+| OpenAPI Examples | — |
+| Rate Limit Signal | derived (partial credit) |
+| Event Surface Described | — |
+| Agent Skills | — |
+| Well Known Catalog | — |
+| Consent Identity | — |
+| Agent Card | — |
+| Dry Run Mode | — |
+| Delegated Identity | — |
+| Protected Resource Metadata | — |
+| Dynamic Client Registration | — |
+| Agentic Commerce | — |
+
+**Regulatory alignment 5.4** — Payments
+
+The rubric is published at [github.com/api-evangelist/kin-score](https://github.com/api-evangelist/kin-score). The per-check breakdown behind these numbers — which checks were earned, partial or missed — along with score history and how this provider compares to its peers, is available at [apis.io/providers/fragment-dev/](https://apis.io/providers/fragment-dev/).
+
+## How this profile is made
+
+API Evangelist profiles a company's public API surface the way a developer would find it: the website, developer portal and documentation, the specifications it publishes, its public repositories, and its pricing, status and changelog pages. From that it derives the properties above — contracts split per API, workflows, schemas, collections, governance rules, plans and rate limits — and scores them against the published [Kin Score rubric](https://github.com/api-evangelist/kin-score).
+
+The artifacts are published on [APIs.io](https://apis.io), not in this repository. This repository is the public record for Fragment: the place to say something is wrong, missing or out of date, and to ask for a re-score or a removal.
+
+## Open an issue
+
+- **Something about this listing** — a wrong description, a missing API, a stale artifact or a question about the rating: [open an issue on this repository](https://github.com/api-evangelist/fragment-dev/issues/new).
+- **A new API, or one that is not in the catalog yet** — [submit it on APIs.io](https://apis.io/add/).
+- **Anything else** — [the APIs.io inbox](https://github.com/api-search/inbox/issues/new) or [info@apievangelist.com](mailto:info@apievangelist.com).
